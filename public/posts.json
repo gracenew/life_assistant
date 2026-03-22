@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "hello-world",
+    "title": "欢迎来到我的博客",
+    "date": "2025-03-15",
+    "tags": ["随笔", "建站"],
+    "excerpt": "用 Vite 搭了一个轻量博客，支持 Markdown，本地即可预览。",
+    "body": "# 开始写作\n\n这是第一篇示例文章。你可以编辑 `public/posts.json` 来增删改文章。\n\n## 支持 Markdown\n\n- **粗体** 与 *斜体*\n- 行内代码：`npm run dev`\n\n```javascript\nconsole.log('Hello, blog')\n```\n\n> 引用块也可以正常使用。\n\n祝写作愉快。"
+  },
+  {
+    "slug": "reading-notes",
+    "title": "最近在读的一本书",
+    "date": "2025-03-10",
+    "tags": ["读书"],
+    "excerpt": "记录一些片段与想法，当作读书笔记的占位示例。",
+    "body": "## 摘录\n\n> 好的文字会在你心里留下回声。\n\n## 想法\n\n把读到的和自己的生活联系起来，比单纯摘抄更有用。\n\n---\n\n*（把这里换成你自己的读书笔记即可。）*"
+  },
+  {
+    "slug": "tech-note",
+    "title": "本地开发说明",
+    "date": "2025-03-01",
+    "tags": ["技术"],
+    "excerpt": "如何在浏览器里查看博客效果。",
+    "body": "## 启动\n\n在项目根目录执行：\n\n```bash\nnpm install\nnpm run dev\n```\n\n浏览器会自动打开开发地址；修改文章或样式后会热更新。\n\n## 构建\n\n```bash\nnpm run build\nnpm run preview\n```\n\n可预览生产构建结果。"
+  }
+]
