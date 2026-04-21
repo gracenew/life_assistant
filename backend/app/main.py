@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import chat, events, finance, habits, meta, notes, tasks
+from app.routers import agent, chat, events, finance, habits, meta, notes, tasks
 
 app = FastAPI(title="AI 生活助理 API", version="0.1.0")
 
@@ -24,6 +24,7 @@ def startup():
 
 app.include_router(meta.router)
 app.include_router(chat.router)
+app.include_router(agent.router)
 app.include_router(tasks.router)
 app.include_router(events.router)
 app.include_router(notes.router)

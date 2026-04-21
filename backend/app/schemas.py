@@ -164,3 +164,51 @@ class ChatResponse(BaseModel):
     provider: str
     model: str
     error: Optional[str] = None
+
+
+# --- Agent ---
+class AgentRunRequest(BaseModel):
+    message: str
+    provider: Optional[str] = None
+    model: Optional[str] = None
+    max_steps: int = 4
+
+
+class AgentToolCallOut(BaseModel):
+    tool: str
+    arguments: dict
+    ok: bool
+    summary: str
+    error: Optional[str] = None
+
+
+class AgentPendingActionOut(BaseModel):
+    type: str
+    payload: dict
+
+
+class AgentRunResponse(BaseModel):
+    answer: str
+    reasoning: str
+    provider: str
+    model: str
+    tool_calls: list[AgentToolCallOut]
+    pending_actions: list[AgentPendingActionOut]
+    error: Optional[str] = None
+
+
+class AgentConfirmRequest(BaseModel):
+    action_type: str
+    payload: dict
+
+
+class AgentConfirmResponse(BaseModel):
+    ok: bool
+    action_type: str
+    record: dict
+
+
+class AgentToolDefinitionOut(BaseModel):
+    name: str
+    description: str
+    parameters: dict

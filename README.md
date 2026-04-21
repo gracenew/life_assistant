@@ -10,6 +10,7 @@
 - 笔记管理：保存和编辑日常笔记
 - 习惯打卡：维护习惯并记录完成情况
 - AI 对话：基于本地数据摘要生成建议
+- Agent 模式：按需调用工具完成网页搜索、天气查询、任务读取与任务创建预览
 
 ## 技术栈
 
@@ -87,3 +88,18 @@ npm run preview
 - 本地数据库默认保存在 `backend/data/life_assistant.db`
 - 若使用 Ollama，请确认本地服务已启动，且 `OLLAMA_MODEL` 与本地已安装模型名称一致
 - 若使用 OpenRouter，请确认 `OPENROUTER_API_KEY` 已配置且模型名称使用完整 provider/model 形式
+
+## Agent 与工具
+
+当前第一版 Agent 能力包含：
+
+- `web_search`：搜索公开网页结果
+- `weather`：查询天气
+- `list_tasks`：读取任务列表
+- `create_task_preview`：生成待确认的任务创建预览
+
+后端接口：
+
+- `POST /api/agent/run`：运行 Agent
+- `GET /api/agent/tools`：查看可用工具
+- `POST /api/agent/confirm`：确认执行待办动作

@@ -74,6 +74,7 @@ function layout(content, title = 'AI 生活助理') {
 }
 
 let chatLoading = false
+let agentLoading = false
 
 async function renderOverview() {
   let cfg = {
@@ -153,6 +154,17 @@ async function renderOverview() {
           <span class="muted small" id="chat-status"></span>
         </div>
         <div id="chat-out" class="chat-out prose"></div>
+
+        <div class="section-divider"></div>
+
+        <h2 class="card-title">Agent 模式</h2>
+        <p class="hint">适合需要调用工具的任务，例如查天气、搜网页、结合待办给建议，或先生成任务创建预览再确认执行。</p>
+        <textarea id="agent-input" class="input-area" rows="4" placeholder="例如：帮我查一下明天上海天气，如果下雨就给我生成一个带伞任务预览。"></textarea>
+        <div class="row">
+          <button type="button" class="btn primary" id="agent-run">运行 Agent</button>
+          <span class="muted small" id="agent-status"></span>
+        </div>
+        <div id="agent-out" class="chat-out prose"></div>
       </section>
     </div>
     <div class="grid-2">
@@ -176,6 +188,10 @@ async function renderOverview() {
   const status = document.getElementById('chat-status')
   const providerInput = document.getElementById('chat-provider')
   const modelInput = document.getElementById('chat-model')
+  const agentInput = document.getElementById('agent-input')
+  const agentOut = document.getElementById('agent-out')
+  const agentStatus = document.getElementById('agent-status')
+  let pendingActions = []
 
   async function sendChat() {
     const message = (input.value || '').trim()
@@ -199,6 +215,101 @@ async function renderOverview() {
     status.textContent = ''
   }
 
+  function renderAgentResponse(data, notice = '') {
+    pendingActions = data.pending_actions || []
+
+    const toolCalls = (data.tool_calls || []).map((call) => {
+      const summary = escapeHtml(call.summary || '')
+      const error = call.error ? `<p class="err small">${escapeHtml(call.error)}</p>` : ''
+      return `
+        <li>
+          <strong>${escapeHtml(call.tool)}</strong> · ${call.ok ? '成功' : '失败'}
+          <div class="muted small">${summary}</div>
+          ${error}
+        </li>
+      `
+    }).join('')
+
+    const actions = pendingActions.map((action, index) => `
+      <div class="agent-action">
+        <div>
+          <strong>${escapeHtml(action.type)}</strong>
+          <div class="muted small">${escapeHtml(JSON.stringify(action.payload))}</div>
+        </div>
+        <button type="button" class="btn sm" data-confirm-action="${index}">确认执行</button>
+      </div>
+    `).join('')
+
+    agentOut.innerHTML = `
+      ${notice ? `<p class="ok small">${escapeHtml(notice)}</p>` : ''}
+      <p>${escapeHtml(data.answer || '').replace(/\n/g, '<br/>') || '<span class="muted">暂无结果</span>'}</p>
+      ${data.reasoning ? `<p class="muted small">Agent 思路：${escapeHtml(data.reasoning)}</p>` : ''}
+      <div class="agent-block">
+        <h3 class="agent-title">工具调用</h3>
+        <ul class="list-plain">${toolCalls || '<li class="muted">本次未调用工具</li>'}</ul>
+      </div>
+      <div class="agent-block">
+        <h3 class="agent-title">待确认动作</h3>
+        ${actions || '<p class="muted small">本次没有待确认动作</p>'}
+      </div>
+    `
+
+    agentOut.querySelectorAll('[data-confirm-action]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const index = Number(btn.getAttribute('data-confirm-action'))
+        const action = pendingActions[index]
+        if (!action) return
+        btn.disabled = true
+        agentStatus.textContent = '执行中…'
+        try {
+          const result = await api('/agent/confirm', {
+            method: 'POST',
+            body: { action_type: action.type, payload: action.payload },
+          })
+          pendingActions = pendingActions.filter((_, i) => i !== index)
+          renderAgentResponse(
+            {
+              ...data,
+              pending_actions: pendingActions,
+            },
+            `已执行 ${result.action_type}：${result.record.title || result.record.id}`
+          )
+        } catch (e) {
+          agentStatus.textContent = ''
+          btn.disabled = false
+          agentOut.insertAdjacentHTML('afterbegin', `<p class="err small">${escapeHtml(e.message)}</p>`)
+          return
+        }
+        agentStatus.textContent = ''
+      })
+    })
+  }
+
+  async function runAgent() {
+    const message = (agentInput.value || '').trim()
+    const provider = providerInput.value
+    const model = (modelInput.value || '').trim()
+    if (!message || agentLoading) return
+    agentLoading = true
+    agentStatus.textContent = 'Agent 运行中…'
+    agentOut.innerHTML = ''
+    try {
+      const data = await api('/agent/run', {
+        method: 'POST',
+        body: { message, provider, model: model || null, max_steps: 4 },
+      })
+      if (data.error) {
+        agentOut.innerHTML = `<p class="err">${escapeHtml(data.error)}</p>`
+      } else {
+        renderAgentResponse(data)
+      }
+    } catch (e) {
+      agentOut.innerHTML = `<p class="err">${escapeHtml(e.message)}</p>`
+    }
+    agentLoading = false
+    agentStatus.textContent = ''
+  }
+
   providerInput.addEventListener('change', () => {
     if (providerInput.value === 'openrouter' && !(modelInput.value || '').trim()) {
       modelInput.value = cfg.ai_model || 'z-ai/glm-4.5-air:free'
@@ -209,8 +320,12 @@ async function renderOverview() {
   })
 
   document.getElementById('chat-send').addEventListener('click', sendChat)
+  document.getElementById('agent-run').addEventListener('click', runAgent)
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) sendChat()
+  })
+  agentInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) runAgent()
   })
 }
 

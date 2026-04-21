@@ -250,6 +250,36 @@ code {
   min-height: 3rem;
 }
 
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 1.25rem 0;
+}
+
+.agent-block + .agent-block {
+  margin-top: 1rem;
+}
+
+.agent-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.agent-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.agent-action:first-of-type {
+  border-top: none;
+}
+
 .prose p {
   margin: 0;
   white-space: pre-wrap;
@@ -295,6 +325,10 @@ code {
 
 .err {
   color: var(--danger);
+}
+
+.ok {
+  color: var(--accent);
 }
 
 .hidden {
